@@ -12,7 +12,159 @@
             padding: 0;
             box-sizing: border-box;
         }
+<script>
+// Variables pour stocker les données
+let currentData = {
+    dailyTasks: {},
+    waterCount: 0,
+    weight: 98,
+    journalEntries: []
+};
 
+// Changer d'onglet
+function showTab(tabName) {
+    const contents = document.querySelectorAll('.content');
+    contents.forEach(content => content.classList.remove('active'));
+    
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Basculer une tâche
+function toggleTask(element) {
+    const checkbox = element.querySelector('.checkbox');
+    const taskText = element.querySelector('span').textContent;
+    
+    if (checkbox.classList.contains('checked')) {
+        checkbox.classList.remove('checked');
+        checkbox.innerHTML = '';
+        element.classList.remove('completed');
+        delete currentData.dailyTasks[taskText];
+    } else {
+        checkbox.classList.add('checked');
+        checkbox.innerHTML = '✓';
+        element.classList.add('completed');
+        currentData.dailyTasks[taskText] = true;
+    }
+    
+    updateDailyProgress();
+    saveData();
+}
+
+// Basculer l'eau
+function toggleWater(bottle) {
+    if (bottle.classList.contains('filled')) {
+        bottle.classList.remove('filled');
+        currentData.waterCount = Math.max(0, currentData.waterCount - 1);
+    } else {
+        bottle.classList.add('filled');
+        currentData.waterCount = Math.min(5, currentData.waterCount + 1);
+    }
+    
+    document.getElementById('water-count').textContent = currentData.waterCount;
+    saveData();
+}
+
+// Mettre à jour le poids
+function updateWeight() {
+    const newWeight = parseFloat(document.getElementById('weight-input').value);
+    const startWeight = 98;
+    const goalWeight = 83;
+    const totalLoss = startWeight - goalWeight;
+    
+    const weightLost = startWeight - newWeight;
+    const weightRemaining = newWeight - goalWeight;
+    const progressPercentage = Math.max(0, (weightLost / totalLoss) * 100);
+    
+    currentData.weight = newWeight;
+    
+    document.getElementById('current-weight').textContent = newWeight.toFixed(1);
+    document.getElementById('current-weight-display').textContent = newWeight.toFixed(1);
+    document.getElementById('weight-lost-display').textContent = Math.max(0, weightLost).toFixed(1);
+    document.getElementById('weight-remaining-display').textContent = Math.max(0, weightRemaining).toFixed(1);
+    document.getElementById('progress-percentage').textContent = progressPercentage.toFixed(0) + '%';
+    
+    document.getElementById('weight-progress-bar').style.width = progressPercentage + '%';
+    
+    saveData();
+    alert('💕 Poids mis à jour ! Tu es sur la bonne voie ! ✨');
+}
+
+// Mettre à jour la progression quotidienne
+function updateDailyProgress() {
+    const totalTasks = 10;
+    const completedTasks = Object.keys(currentData.dailyTasks).length;
+    const percentage = (completedTasks / totalTasks) * 100;
+    
+    document.getElementById('daily-progress-bar').style.width = percentage + '%';
+    document.getElementById('completed-tasks').textContent = completedTasks;
+}
+
+// Sauvegarder les données
+function saveData() {
+    localStorage.setItem('postPartumProgram', JSON.stringify(currentData));
+}
+
+// Charger les données
+function loadData() {
+    const saved = localStorage.getItem('postPartumProgram');
+    if (saved) {
+        currentData = { ...currentData, ...JSON.parse(saved) };
+        updateUI();
+    }
+}
+
+// Mettre à jour l'interface
+function updateUI() {
+    document.getElementById('water-count').textContent = currentData.waterCount;
+    
+    const bottles = document.querySelectorAll('.water-bottle');
+    bottles.forEach((bottle, index) => {
+        if (index < currentData.waterCount) {
+            bottle.classList.add('filled');
+        }
+    });
+    
+    Object.keys(currentData.dailyTasks).forEach(taskText => {
+        const taskElements = document.querySelectorAll('.routine-item span');
+        taskElements.forEach(element => {
+            if (element.textContent === taskText) {
+                const routineItem = element.parentElement;
+                const checkbox = routineItem.querySelector('.checkbox');
+                checkbox.classList.add('checked');
+                checkbox.innerHTML = '✓';
+                routineItem.classList.add('completed');
+            }
+        });
+    });
+    
+    if (currentData.weight !== 98) {
+        document.getElementById('weight-input').value = currentData.weight;
+        updateWeight();
+    }
+    
+    updateDailyProgress();
+}
+
+// Calculer les jours jusqu'à Noël
+function updateChristmasCountdown() {
+    const christmas = new Date('2025-12-25');
+    const today = new Date();
+    const diffTime = christmas - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    document.getElementById('days-to-christmas').textContent = diffDays;
+    document.getElementById('days-to-goal').textContent = diffDays;
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+    updateChristmasCountdown();
+});
+</script>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #FFE4E6 0%, #E8F3FF 50%, #F0E8FF 100%);

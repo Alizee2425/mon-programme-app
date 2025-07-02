@@ -1,735 +1,426 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Programme Post-Accouchement 🌸</title>
-    <meta name="description" content="Application personnalisée pour mon programme de remise en forme post-accouchement">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-<script>
-// Variables pour stocker les données
-let currentData = {
-    dailyTasks: {},
-    waterCount: 0,
-    weight: 98,
-    journalEntries: []
-};
+import React, { useState, useEffect } from 'react';
+import { Heart, Droplets, Scale, UtensilsCrossed, Smile, Flower2, Pill, Sparkles, Calendar, Trophy, Gift, Star, TrendingDown, Target, Award, BookOpen, Bell } from 'lucide-react';
 
-// Changer d'onglet
-function showTab(tabName) {
-    const contents = document.querySelectorAll('.content');
-    contents.forEach(content => content.classList.remove('active'));
-    
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => tab.classList.remove('active'));
-    
-    document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
-}
+const PostPregnancyApp = () => {
+  const [currentWeight, setCurrentWeight] = useState(98);
+  const [targetWeight] = useState(78);
+  const [waterIntake, setWaterIntake] = useState(0);
+  const [waterTarget] = useState(2000);
+  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [completedTasks, setCompletedTasks] = useState({});
+  const [points, setPoints] = useState(0);
+  const [moodMorning, setMoodMorning] = useState(null);
+  const [moodEvening, setMoodEvening] = useState(null);
+  const [journal, setJournal] = useState('');
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [selectedExercise, setSelectedExercise] = useState(null);
 
-// Basculer une tâche
-function toggleTask(element) {
-    const checkbox = element.querySelector('.checkbox');
-    const taskText = element.querySelector('span').textContent;
-    
-    if (checkbox.classList.contains('checked')) {
-        checkbox.classList.remove('checked');
-        checkbox.innerHTML = '';
-        element.classList.remove('completed');
-        delete currentData.dailyTasks[taskText];
+  const weightLost = 98 - currentWeight;
+  const weightToLose = currentWeight - targetWeight;
+  const progressPercentage = (weightLost / 20) * 100;
+
+  const todayTip = "💡 Buvez un grand verre d'eau au réveil pour réhydrater votre corps et booster votre métabolisme";
+  const todayMotivation = "🌸 Chaque petit pas compte. Vous êtes plus forte que vous ne le pensez !";
+
+  const menus = {
+    "petit-dejeuner": [
+      {
+        name: "Porridge d'avoine aux fruits rouges et graines de chia",
+        recipe: "Ingrédients:\n• 60g flocons d'avoine\n• 250ml lait d'amande\n• 1 c.à.s graines de chia\n• 100g fruits rouges\n• 1 c.à.c miel\n\nPréparation:\n1. Faire chauffer le lait d'amande\n2. Ajouter les flocons d'avoine, cuire 5 min\n3. Incorporer les graines de chia\n4. Servir avec les fruits rouges et le miel"
+      },
+      {
+        name: "Yaourt grec, granola maison et kiwi",
+        recipe: "Ingrédients:\n• 150g yaourt grec 0%\n• 30g granola maison\n• 1 kiwi\n• 1 c.à.c miel\n• Quelques amandes\n\nPréparation:\n1. Éplucher et couper le kiwi\n2. Dans un bol, mettre le yaourt\n3. Ajouter le granola et le kiwi\n4. Parsemer d'amandes et de miel"
+      },
+      {
+        name: "Smoothie vert (épinards, banane, pomme, lait d'amande)",
+        recipe: "Ingrédients:\n• 1 poignée d'épinards frais\n• 1 banane\n• 1 pomme verte\n• 200ml lait d'amande\n• 1 c.à.c spiruline (optionnel)\n\nPréparation:\n1. Laver les épinards\n2. Éplucher la banane et la pomme\n3. Mixer tous les ingrédients\n4. Servir frais"
+      }
+    ],
+    "dejeuner": [
+      {
+        name: "Salade de quinoa aux légumes grillés et avocat",
+        recipe: "Ingrédients:\n• 80g quinoa\n• 1 courgette\n• 1 poivron rouge\n• 1/2 avocat\n• Roquette\n• Huile d'olive, citron\n\nPréparation:\n1. Cuire le quinoa 15 min\n2. Griller les légumes à la poêle\n3. Mélanger quinoa, légumes, avocat\n4. Assaisonner d'huile d'olive et citron"
+      },
+      {
+        name: "Soupe de lentilles corail au lait de coco",
+        recipe: "Ingrédients:\n• 100g lentilles corail\n• 200ml lait de coco\n• 1 oignon\n• 2 carottes\n• Épices (cumin, coriandre)\n\nPréparation:\n1. Faire revenir l'oignon\n2. Ajouter carottes et lentilles\n3. Verser le lait de coco et 300ml d'eau\n4. Cuire 20 min avec les épices"
+      },
+      {
+        name: "Bowl de saumon, riz complet et légumes vapeur",
+        recipe: "Ingrédients:\n• 120g saumon\n• 60g riz complet\n• Brocolis, carottes\n• Sauce soja, gingembre\n\nPréparation:\n1. Cuire le riz complet\n2. Cuire le saumon à la vapeur\n3. Faire cuire les légumes à la vapeur\n4. Dresser en bowl avec la sauce"
+      }
+    ],
+    "diner": [
+      {
+        name: "Poisson blanc grillé aux légumes de saison",
+        recipe: "Ingrédients:\n• 120g cabillaud\n• Légumes de saison\n• Herbes de Provence\n• Huile d'olive\n• Citron\n\nPréparation:\n1. Assaisonner le poisson\n2. Griller à la poêle 4 min de chaque côté\n3. Cuire les légumes à la vapeur\n4. Servir avec un filet de citron"
+      },
+      {
+        name: "Omelette aux légumes et salade verte",
+        recipe: "Ingrédients:\n• 2 œufs\n• Courgette, tomates cerises\n• Salade verte\n• Fines herbes\n• Huile d'olive\n\nPréparation:\n1. Faire revenir les légumes\n2. Battre les œufs avec les herbes\n3. Verser sur les légumes, cuire l'omelette\n4. Servir avec la salade"
+      },
+      {
+        name: "Curry de légumes au lait de coco et riz basmati",
+        recipe: "Ingrédients:\n• Légumes variés\n• 200ml lait de coco\n• 60g riz basmati\n• Pâte de curry\n• Coriandre fraîche\n\nPréparation:\n1. Faire revenir les légumes\n2. Ajouter la pâte de curry\n3. Verser le lait de coco, mijoter 15 min\n4. Servir sur le riz avec la coriandre"
+      }
+    ]
+  };
+
+  const yinYangExercises = [
+    {
+      name: "Respiration profonde - 5 minutes",
+      instructions: "Position: Assise confortablement, dos droit\n\n1. Inspirez lentement par le nez en gonflant le ventre (4 temps)\n2. Retenez votre souffle (4 temps)\n3. Expirez doucement par la bouche (6 temps)\n4. Répétez pendant 5 minutes\n\nBienfaits: Réduit le stress, calme le système nerveux"
+    },
+    {
+      name: "Étirements doux du cou et des épaules",
+      instructions: "Position: Assise ou debout\n\n1. Inclinez doucement la tête vers la droite (30 sec)\n2. Répétez vers la gauche\n3. Roulez les épaules vers l'arrière (10 fois)\n4. Étirez les bras vers le ciel puis détendez\n\nBienfaits: Relâche les tensions, améliore la posture"
+    },
+    {
+      name: "Posture de l'enfant - 3 minutes",
+      instructions: "Position: À genoux sur le sol\n\n1. Écartez légèrement les genoux\n2. Asseyez-vous sur vos talons\n3. Penchez-vous vers l'avant, front au sol\n4. Étendez les bras devant vous ou le long du corps\n5. Respirez profondément\n\nBienfaits: Étire le dos, calme l'esprit"
+    },
+    {
+      name: "Torsions douces allongées",
+      instructions: "Position: Allongée sur le dos\n\n1. Pliez les genoux vers la poitrine\n2. Laissez tomber les genoux vers la droite\n3. Gardez les épaules au sol\n4. Restez 1 minute, changez de côté\n\nBienfaits: Masse les organes internes, détend le dos"
+    }
+  ];
+
+  const faceYogaExercises = [
+    {
+      name: "Massage des tempes en cercles",
+      instructions: "Position: Assise confortablement\n\n1. Placez vos index sur vos tempes\n2. Effectuez de petits cercles dans le sens horaire (30 sec)\n3. Puis dans le sens antihoraire (30 sec)\n4. Appliquez une pression douce et constante\n\nBienfaits: Réduit les tensions, stimule la circulation"
+    },
+    {
+      name: "Étirements du sourire (sourire large 10 sec)",
+      instructions: "Position: Face au miroir\n\n1. Souriez le plus largement possible\n2. Maintenez 10 secondes\n3. Détendez 5 secondes\n4. Répétez 5 fois\n5. Terminez par des petits tapotements sur les joues\n\nBienfaits: Tonifie les muscles des joues, prévient l'affaissement"
+    },
+    {
+      name: "Massage du contour des yeux",
+      instructions: "Position: Mains propres\n\n1. Placez vos annulaires sous les yeux\n2. Tapotez délicatement du coin interne vers l'externe\n3. Remontez sur la paupière supérieure\n4. Répétez 10 fois par œil\n\nBienfaits: Active la circulation, réduit les poches"
+    },
+    {
+      name: "Pincements doux des joues",
+      instructions: "Position: Devant le miroir\n\n1. Pincez délicatement vos joues avec le pouce et l'index\n2. Commencez près du nez, remontez vers les tempes\n3. Effectuez de petits pincements rythmés\n4. Couvrez toute la surface des joues\n\nBienfaits: Stimule la production de collagène, rosit les joues"
+    }
+  ];
+
+  const skinCareRoutine = {
+    matin: [
+      { name: "Eau micellaire", instructions: "Imbibez un coton d'eau micellaire et passez délicatement sur tout le visage. N'oubliez pas le cou ! Cela évite l'utilisation de l'eau calcaire." },
+      { name: "Lotion hydratante", instructions: "Appliquez la lotion sur coton ou directement avec les mains, en tapotant délicatement. Laissez pénétrer 1 minute." },
+      { name: "Sérum vitamine C", instructions: "3 gouttes suffisent ! Répartissez sur visage et cou en tapotant. Attendez 2-3 minutes avant la crème." },
+      { name: "Crème + SPF 30", instructions: "Appliquez généreusement votre crème avec SPF. N'oubliez pas le cou et le décolleté !" }
+    ],
+    soir: [
+      { name: "Démaquillage huile", instructions: "Massez l'huile de jojoba sur peau sèche, même sur les yeux. Émulsifiez avec un peu d'eau puis rincez." },
+      { name: "Nettoyage", instructions: "Utilisez votre nettoyant habituel pour éliminer les résidus d'huile et purifier la peau." },
+      { name: "Eau thermale", instructions: "Vaporisez à 20cm du visage et tapotez avec un mouchoir. Cela neutralise le calcaire de l'eau du robinet." },
+      { name: "Sérum acide hyaluronique", instructions: "Sur peau encore humide ! 2-3 gouttes en tapotant délicatement. L'humidité aide la pénétration." },
+      { name: "Masque Clarins", instructions: "Continuez votre masque Clarins, il est parfait ! Appliquez en couche épaisse, laissez poser selon les instructions." }
+    ]
+  };
+
+  const handleTaskComplete = (taskId) => {
+    setCompletedTasks(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }));
+    if (!completedTasks[taskId]) {
+      setPoints(prev => prev + 10);
     } else {
-        checkbox.classList.add('checked');
-        checkbox.innerHTML = '✓';
-        element.classList.add('completed');
-        currentData.dailyTasks[taskText] = true;
+      setPoints(prev => Math.max(0, prev - 10));
     }
-    
-    updateDailyProgress();
-    saveData();
-}
+  };
 
-// Basculer l'eau
-function toggleWater(bottle) {
-    if (bottle.classList.contains('filled')) {
-        bottle.classList.remove('filled');
-        currentData.waterCount = Math.max(0, currentData.waterCount - 1);
-    } else {
-        bottle.classList.add('filled');
-        currentData.waterCount = Math.min(5, currentData.waterCount + 1);
+  const addWater = (amount) => {
+    setWaterIntake(prev => Math.min(waterTarget, prev + amount));
+    if (waterIntake + amount >= waterTarget && waterIntake < waterTarget) {
+      setPoints(prev => prev + 50);
     }
-    
-    document.getElementById('water-count').textContent = currentData.waterCount;
-    saveData();
-}
+  };
 
-// Mettre à jour le poids
-function updateWeight() {
-    const newWeight = parseFloat(document.getElementById('weight-input').value);
-    const startWeight = 98;
-    const goalWeight = 83;
-    const totalLoss = startWeight - goalWeight;
-    
-    const weightLost = startWeight - newWeight;
-    const weightRemaining = newWeight - goalWeight;
-    const progressPercentage = Math.max(0, (weightLost / totalLoss) * 100);
-    
-    currentData.weight = newWeight;
-    
-    document.getElementById('current-weight').textContent = newWeight.toFixed(1);
-    document.getElementById('current-weight-display').textContent = newWeight.toFixed(1);
-    document.getElementById('weight-lost-display').textContent = Math.max(0, weightLost).toFixed(1);
-    document.getElementById('weight-remaining-display').textContent = Math.max(0, weightRemaining).toFixed(1);
-    document.getElementById('progress-percentage').textContent = progressPercentage.toFixed(0) + '%';
-    
-    document.getElementById('weight-progress-bar').style.width = progressPercentage + '%';
-    
-    saveData();
-    alert('💕 Poids mis à jour ! Tu es sur la bonne voie ! ✨');
-}
-
-// Mettre à jour la progression quotidienne
-function updateDailyProgress() {
-    const totalTasks = 10;
-    const completedTasks = Object.keys(currentData.dailyTasks).length;
-    const percentage = (completedTasks / totalTasks) * 100;
-    
-    document.getElementById('daily-progress-bar').style.width = percentage + '%';
-    document.getElementById('completed-tasks').textContent = completedTasks;
-}
-
-// Sauvegarder les données
-function saveData() {
-    localStorage.setItem('postPartumProgram', JSON.stringify(currentData));
-}
-
-// Charger les données
-function loadData() {
-    const saved = localStorage.getItem('postPartumProgram');
-    if (saved) {
-        currentData = { ...currentData, ...JSON.parse(saved) };
-        updateUI();
-    }
-}
-
-// Mettre à jour l'interface
-function updateUI() {
-    document.getElementById('water-count').textContent = currentData.waterCount;
-    
-    const bottles = document.querySelectorAll('.water-bottle');
-    bottles.forEach((bottle, index) => {
-        if (index < currentData.waterCount) {
-            bottle.classList.add('filled');
-        }
-    });
-    
-    Object.keys(currentData.dailyTasks).forEach(taskText => {
-        const taskElements = document.querySelectorAll('.routine-item span');
-        taskElements.forEach(element => {
-            if (element.textContent === taskText) {
-                const routineItem = element.parentElement;
-                const checkbox = routineItem.querySelector('.checkbox');
-                checkbox.classList.add('checked');
-                checkbox.innerHTML = '✓';
-                routineItem.classList.add('completed');
-            }
-        });
-    });
-    
-    if (currentData.weight !== 98) {
-        document.getElementById('weight-input').value = currentData.weight;
-        updateWeight();
-    }
-    
-    updateDailyProgress();
-}
-
-// Calculer les jours jusqu'à Noël
-function updateChristmasCountdown() {
-    const christmas = new Date('2025-12-25');
-    const today = new Date();
-    const diffTime = christmas - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    document.getElementById('days-to-christmas').textContent = diffDays;
-    document.getElementById('days-to-goal').textContent = diffDays;
-}
-
-// Initialisation
-document.addEventListener('DOMContentLoaded', function() {
-    loadData();
-    updateChristmasCountdown();
-});
-</script>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #FFE4E6 0%, #E8F3FF 50%, #F0E8FF 100%);
-            min-height: 100vh;
-            color: #2D3748;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 24px;
-            padding: 32px;
-            margin-bottom: 24px;
-            text-align: center;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-        }
-
-        .header h1 {
-            color: #FF8A9B;
-            margin-bottom: 16px;
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-        }
-
-        .motivational-quote {
-            background: linear-gradient(135deg, #FFB4C7 0%, #FFE4E6 100%);
-            color: #4A5568;
-            padding: 20px 24px;
-            border-radius: 16px;
-            margin: 20px 0;
-            font-style: italic;
-            font-size: 1.1rem;
-            font-weight: 500;
-            border: 1px solid rgba(255, 180, 199, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .motivational-quote::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #FF8A9B, #A78BFA, #60A5FA);
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* Widget de suivi du poids */
-        .weight-widget {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 24px;
-            margin: 20px 0;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-        }
-
-        .weight-input-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 16px 0;
-            flex-wrap: wrap;
-        }
-
-        .weight-input {
-            padding: 12px 16px;
-            border: 2px solid #E2E8F0;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2D3748;
-            background: rgba(255, 255, 255, 0.9);
-            transition: all 0.3s ease;
-            width: 120px;
-        }
-
-        .weight-input:focus {
-            outline: none;
-            border-color: #FF8A9B;
-            box-shadow: 0 0 0 3px rgba(255, 138, 155, 0.1);
-        }
-
-        .weight-progress {
-            position: relative;
-            height: 12px;
-            background: #E2E8F0;
-            border-radius: 6px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-
-        .weight-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #FF8A9B 0%, #A78BFA 50%, #60A5FA 100%);
-            border-radius: 6px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .weight-progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            animation: progressShine 2s ease-in-out infinite;
-        }
-
-        @keyframes progressShine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-top: 24px;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.6);
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #FF8A9B;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #718096;
-            font-weight: 500;
-        }
-
-        .tab-container {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-            overflow-x: auto;
-            padding: 4px;
-        }
-
-        .tab {
-            background: rgba(255, 255, 255, 0.7);
-            border: none;
-            padding: 12px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.875rem;
-            color: #4A5568;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #FF8A9B 0%, #FFB4C7 100%);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 138, 155, 0.3);
-        }
-
-        .tab:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateY(-1px);
-        }
-
-        .content {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 20px;
-            padding: 32px;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-            display: none;
-        }
-
-        .content.active {
-            display: block;
-            animation: fadeInUp 0.5s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .routine-item {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 16px 20px;
-            margin: 12px 0;
-            border-radius: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-        }
-
-        .routine-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            background: rgba(255, 255, 255, 1);
-        }
-
-        .routine-item.completed {
-            background: linear-gradient(135deg, #98FB98 0%, #90EE90 100%);
-            border-color: #68D391;
-            color: white;
-        }
-
-        .checkbox {
-            width: 24px;
-            height: 24px;
-            border-radius: 8px;
-            border: 2px solid #CBD5E0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .checkbox.checked {
-            background: #48BB78;
-            border-color: #48BB78;
-            color: white;
-        }
-
-        .meal-card, .yoga-exercise, .mental-tool {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            margin: 16px 0;
-            border-radius: 16px;
-            border-left: 4px solid #FF8A9B;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .meal-time {
-            font-weight: 700;
-            color: #FF8A9B;
-            font-size: 1.125rem;
-            margin-bottom: 12px;
-        }
-
-        .save-btn {
-            background: linear-gradient(135deg, #FF8A9B 0%, #A78BFA 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(255, 138, 155, 0.3);
-        }
-
-        .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 138, 155, 0.4);
-        }
-
-        .water-tracker {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-
-        .water-bottle {
-            width: 32px;
-            height: 48px;
-            border: 2px solid #CBD5E0;
-            border-radius: 6px 6px 12px 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        .water-bottle.filled {
-            background: linear-gradient(180deg, #60A5FA 0%, #3B82F6 100%);
-            border-color: #3B82F6;
-        }
-
-        .mood-scale {
-            display: flex;
-            gap: 8px;
-            margin: 16px 0;
-            flex-wrap: wrap;
-        }
-
-        .mood-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            border: 2px solid #E2E8F0;
-            background: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .mood-btn.selected {
-            background: #FF8A9B;
-            color: white;
-            border-color: #FF8A9B;
-            transform: scale(1.1);
-        }
-
-        .journal-entry {
-            width: 100%;
-            min-height: 120px;
-            padding: 16px;
-            border: 2px solid #E2E8F0;
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 1rem;
-            margin: 12px 0;
-            resize: vertical;
-            background: rgba(255, 255, 255, 0.9);
-            transition: border-color 0.3s ease;
-        }
-
-        .journal-entry:focus {
-            outline: none;
-            border-color: #FF8A9B;
-            box-shadow: 0 0 0 3px rgba(255, 138, 155, 0.1);
-        }
-
-        .emergency-section {
-            background: linear-gradient(135deg, #FED7D7 0%, #FEB2B2 100%);
-            padding: 20px;
-            border-radius: 16px;
-            margin: 20px 0;
-            border: 1px solid #FC8181;
-        }
-
-        .supplements-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-            margin: 20px 0;
-        }
-
-        .supplement-card {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        /* Boutons flottants modernes */
-        .floating-btn {
-            position: fixed;
-            width: 70px;
-            height: 70px;
-            border-radius: 16px;
-            border: none;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            z-index: 1000;
-            font-size: 0.7rem;
-        }
-
-        .floating-btn:hover {
-            transform: translateY(-4px) scale(1.05);
-        }
-
-        .floating-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 16px;
-            }
-            
-            .header {
-                padding: 24px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .content {
-                padding: 24px;
-            }
-            
-            .stats {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-
-            .floating-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 0.6rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🌸 Mon Programme Post-Accouchement</h1>
-            <div class="motivational-quote" id="daily-quote">
-                You are braver than you believe, stronger than you seem, and more beautiful than you think 💕
-            </div>
-            <p style="color: #718096; font-size: 1.125rem; margin-bottom: 24px;">Objectif : -15kg d'ici Noël | 98kg → 83kg</p>
-            
-            <!-- Widget de suivi du poids -->
-            <div class="weight-widget">
-                <h3 style="color: #FF8A9B; font-size: 1.5rem; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    ⚖️ Mon Suivi Poids
-                </h3>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 2.2rem; font-weight: 700; color: #FF8A9B;" id="current-weight-display">98.0</div>
-                        <div style="font-size: 0.875rem; color: #718096;">Poids actuel (kg)</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2.2rem; font-weight: 700; color: #A78BFA;" id="weight-lost-display">0.0</div>
-                        <div style="font-size: 0.875rem; color: #718096;">Perdus (kg)</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2.2rem; font-weight: 700; color: #60A5FA;" id="weight-remaining-display">15.0</div>
-                        <div style="font-size: 0.875rem; color: #718096;">Restants (kg)</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2.2rem; font-weight: 700; color: #34D399;" id="progress-percentage">0%</div>
-                        <div style="font-size: 0.875rem; color: #718096;">Progression</div>
-                    </div>
-                </div>
-
-                <div class="weight-input-section">
-                    <label style="font-weight: 600; color: #4A5568;">Nouveau poids :</label>
-                    <input type="number" id="weight-input" class="weight-input" value="98" step="0.1" min="40" max="120">
-                    <span style="color: #718096; font-weight: 500;">kg</span>
-                    <button class="save-btn" onclick="updateWeight()">📊 Mettre à jour</button>
-                </div>
-
-                <div class="weight-progress">
-                    <div class="weight-progress-fill" id="weight-progress-bar" style="width: 0%"></div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: #718096; margin-top: 8px;">
-                    <span>98kg (départ)</span>
-                    <span style="font-weight: 600; color: #FF8A9B;">Objectif Noël</span>
-                    <span>83kg (objectif)</span>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-top: 16px;">
-                    <div style="background: rgba(255, 138, 155, 0.1); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid rgba(255, 138, 155, 0.2);">
-                        <div style="font-size: 1.25rem; font-weight: 700; color: #FF8A9B;" id="days-to-goal">158</div>
-                        <div style="font-size: 0.75rem; color: #718096;">Jours restants</div>
-                    </div>
-                    <div style="background: rgba(167, 139, 250, 0.1); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid rgba(167, 139, 250, 0.2);">
-                        <div style="font-size: 1.25rem; font-weight: 700; color: #A78BFA;" id="weekly-goal">0.75</div>
-                        <div style="font-size: 0.75rem; color: #718096;">kg/semaine</div>
-                    </div>
-                    <div style="background: rgba(96, 165, 250, 0.1); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid rgba(96, 165, 250, 0.2);">
-                        <div style="font-size: 1.25rem; font-weight: 700; color: #60A5FA;" id="monthly-goal">3.0</div>
-                        <div style="font-size: 0.75rem; color: #718096;">kg/mois</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="days-count">21</div>
-                    <div class="stat-label">Jours depuis accouchement</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="current-weight">98</div>
-                    <div class="stat-label">Poids actuel (kg)</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="goal-weight">83</div>
-                    <div class="stat-label">Objectif (kg)</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="days-to-christmas">158</div>
-                    <div class="stat-label">Jours jusqu'à Noël</div>
-                </div>
-            </div>
+  const WeightCard = () => (
+    <div className="bg-gradient-to-br from-[#B58AFD] via-[#FFA4D3] to-[#FFD785] p-6 rounded-3xl text-white shadow-xl">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="text-lg font-semibold opacity-90">Perte de Poids</h3>
+          <p className="text-sm opacity-75">Objectif Noël</p>
         </div>
+        <Scale className="w-6 h-6 opacity-80" />
+      </div>
+      
+      <div className="text-center mb-6">
+        <div className="text-4xl font-bold mb-2">{currentWeight}kg</div>
+        <div className="text-sm opacity-75">-{weightLost}kg perdus • {weightToLose}kg restants</div>
+      </div>
 
-        <div class="tab-container">
-            <button class="tab active" onclick="showTab('daily')">📅 Ma Journée</button>
-            <button class="tab" onclick="showTab('meals')">🥗 Repas</button>
-            <button class="tab" onclick="showTab('yoga')">🧘‍♀️ Yoga</button>
-            <button class="tab" onclick="showTab('mental')">🧠 Bien-être</button>
-            <button class="tab" onclick="showTab('supplements')">💊 Compléments</button>
-            <button class="tab" onclick="showTab('journal')">📝 Journal</button>
-            <button class="tab" onclick="showTab('progress')">📊 Suivi</button>
+      <div className="mb-4">
+        <div className="flex justify-between text-sm mb-2">
+          <span>Progression</span>
+          <span>{Math.round(progressPercentage)}%</span>
         </div>
+        <div className="w-full bg-white/30 rounded-full h-3">
+          <div 
+            className="bg-white rounded-full h-3 transition-all duration-500"
+            style={{ width: `${Math.min(100, progressPercentage)}%` }}
+          ></div>
+        </div>
+      </div>
 
-        <!-- Onglet Ma Journée -->
-        <div id="daily" class="content active">
-            <h2>🌅 Ma Routine Quotidienne</h2>
-            
-            <h3>🌅 Au Réveil</h3>
-            <div class="routine-item" onclick="toggleTask(this)">
-                <span>💧 Vinaigre de cidre + miel + eau</span>
-                <div class="checkbox"></div>
-            </div>
-            <div class="routine-item" onclick="toggleTask(this)">
-                <span>💊 Fer + Vitamine C (à jeun)</span>
-                <div class="checkbox"></div>
-            </div>
-            <div class="routine-item" onclick="toggleTask(this)">
-                <span>🧘‍♀️ Yoga du visage (5 min)</span>
+      <input
+        type="number"
+        value={currentWeight}
+        onChange={(e) => setCurrentWeight(parseFloat(e.target.value) || 98)}
+        className="w-full p-2 rounded-xl bg-white/20 text-white placeholder-white/70 text-center"
+        placeholder="Poids actuel"
+      />
+    </div>
+  );
+
+  const HydrationCard = () => (
+    <div className="bg-gradient-to-br from-[#B58AFD] to-[#FFA4D3] p-6 rounded-3xl text-white shadow-xl">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Hydratation</h3>
+        <Droplets className="w-6 h-6" />
+      </div>
+      
+      <div className="text-center mb-4">
+        <div className="text-3xl font-bold">{waterIntake}ml</div>
+        <div className="text-sm opacity-75">/ {waterTarget}ml</div>
+      </div>
+
+      <div className="mb-4">
+        <div className="w-full bg-white/30 rounded-full h-3">
+          <div 
+            className="bg-white rounded-full h-3 transition-all duration-500"
+            style={{ width: `${(waterIntake / waterTarget) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button 
+          onClick={() => addWater(250)}
+          className="flex-1 bg-white/20 p-2 rounded-xl text-sm hover:bg-white/30 transition-all"
+        >+250ml</button>
+        <button 
+          onClick={() => addWater(500)}
+          className="flex-1 bg-white/20 p-2 rounded-xl text-sm hover:bg-white/30 transition-all"
+        >+500ml</button>
+      </div>
+    </div>
+  );
+
+  const MoodTracker = () => (
+    <div className="bg-gradient-to-br from-[#FFA4D3] to-[#FFD785] p-6 rounded-3xl text-white shadow-xl">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Humeur</h3>
+        <Smile className="w-6 h-6" />
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <p className="text-sm mb-2">Matin</p>
+          <div className="flex gap-2">
+            {['😢', '😕', '😐', '😊', '😍'].map((emoji, index) => (
+              <button
+                key={index}
+                onClick={() => setMoodMorning(index)}
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all
+                  ${moodMorning === index ? 'bg-white/40' : 'bg-white/20 hover:bg-white/30'}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div>
+          <p className="text-sm mb-2">Soir</p>
+          <div className="flex gap-2">
+            {['😢', '😕', '😐', '😊', '😍'].map((emoji, index) => (
+              <button
+                key={index}
+                onClick={() => setMoodEvening(index)}
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all
+                  ${moodEvening === index ? 'bg-white/40' : 'bg-white/20 hover:bg-white/30'}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const TaskList = ({ title, tasks, icon: Icon, color }) => (
+    <div className={`bg-gradient-to-br ${color} p-4 rounded-2xl text-white shadow-lg`}>
+      <div className="flex items-center gap-2 mb-3">
+        <Icon className="w-5 h-5" />
+        <h4 className="font-semibold">{title}</h4>
+      </div>
+      
+      <div className="space-y-2">
+        {tasks.map((task, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer flex-1">
+              <input
+                type="checkbox"
+                checked={completedTasks[`${title}-${index}`] || false}
+                onChange={() => handleTaskComplete(`${title}-${index}`)}
+                className="w-4 h-4 rounded accent-white"
+              />
+              <span className="text-sm">{typeof task === 'string' ? task : task.name}</span>
+            </label>
+            {typeof task === 'object' && task.instructions && (
+              <button
+                onClick={() => setSelectedExercise(task)}
+                className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-xs transition-all font-semibold"
+              >
+                👁️
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const MenuCard = () => {
+    const [todayMenus] = useState(() => ({
+      'petit-dejeuner': menus['petit-dejeuner'][Math.floor(Math.random() * menus['petit-dejeuner'].length)],
+      'dejeuner': menus['dejeuner'][Math.floor(Math.random() * menus['dejeuner'].length)],
+      'diner': menus['diner'][Math.floor(Math.random() * menus['diner'].length)]
+    }));
+
+    return (
+      <div className="bg-gradient-to-br from-[#B58AFD] to-[#FFD785] p-6 rounded-3xl text-white shadow-xl">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Menus du Jour</h3>
+          <UtensilsCrossed className="w-6 h-6" />
+        </div>
+        
+        <div className="space-y-3">
+          {Object.entries(todayMenus).map(([meal, menuItem]) => (
+            <button
+              key={meal}
+              onClick={() => setSelectedRecipe(menuItem)}
+              className="w-full bg-white/20 p-3 rounded-xl hover:bg-white/30 transition-all text-left"
+            >
+              <h4 className="font-medium mb-1 capitalize">{meal.replace('-', ' ')}</h4>
+              <p className="text-sm opacity-90">{menuItem.name}</p>
+              <p className="text-xs opacity-75 mt-1">👆 Cliquez pour la recette</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDashboard = () => (
+    <div className="p-6 space-y-6">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">Bonjour ! ✨</h1>
+        <div className="flex items-center justify-center gap-4 text-sm">
+          <div className="flex items-center gap-1">
+            <Trophy className="w-4 h-4 text-[#FFD785]" />
+            <span className="font-semibold">{points} points</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Target className="w-4 h-4 text-[#B58AFD]" />
+            <span>{Math.round(progressPercentage)}% objectif</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-r from-[#FFD785]/20 to-[#FFA4D3]/20 p-4 rounded-2xl mb-4">
+        <div className="flex items-start gap-3">
+          <Star className="w-5 h-5 text-[#FFD785] mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-gray-800 mb-1">Conseil du jour</h3>
+            <p className="text-sm text-gray-700">{todayTip}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-r from-[#FFA4D3]/20 to-[#B58AFD]/20 p-4 rounded-2xl mb-6">
+        <div className="flex items-start gap-3">
+          <Heart className="w-5 h-5 text-[#FFA4D3] mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-gray-800 mb-1">Motivation</h3>
+            <p className="text-sm text-gray-700">{todayMotivation}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <WeightCard />
+        <HydrationCard />
+        <MoodTracker />
+        <MenuCard />
+      </div>
+    </div>
+  );
+
+  const renderWellness = () => (
+    <div className="p-6 space-y-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Bien-être</h2>
+      
+      <TaskList 
+        title="Yoga du Visage"
+        tasks={faceYogaExercises}
+        icon={Sparkles}
+        color="from-[#FFA4D3] to-[#FFD785]"
+      />
+      
+      <TaskList 
+        title="Yoga Yin"
+        tasks={yinYangExercises}
+        icon={Flower2}
+        color="from-[#B58AFD] to-[#FFA4D3]"
+      />
+      
+      <TaskList 
+        title="Compléments"
+        tasks={[
+          {name: "4 gélules collagène", instructions: "Prendre 4 gélules de collagène marin le matin à jeun avec un grand verre d'eau. Idéalement 30 minutes avant le petit-déjeuner pour une meilleure absorption."}, 
+          {name: "Probiotiques", instructions: "Prendre 1 gélule de probiotiques le soir avant le coucher, avec un peu d'eau. Les probiotiques aident à maintenir l'équilibre de la flore intestinale."}
+        ]}
+        icon={Pill}
+        color="from-[#FFD785] to-[#FFA4D3]"
+      />
+    </div>
+  );
+
+  const renderSkincare = () => (
+    <div className="p-6 space-y-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Routine Soins</h2>
+      
+      <TaskList 
+        title="Routine Matin"
+        tasks={skinCareRoutine.matin}
+        icon={Sparkles}
+        color="from-[#FFD785] to-[#FFA4D3]"
+      />
+      
+      <TaskList 
+        title="Routine Soir"
+        tasks={skinCareRoutine.soir}
+        icon={Sparkles}
+        color="from-[#B58AFD] to-[#FFA4D3]"
+      />
+    </div>
+  );
+
+  const renderJournal = () => (
+    <div className="p-6">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Journal de Bord</h2>
+      
+      <div className="bg-gradient-to-br from-[#B58AFD]/10 to-[#FFA4D3]/10 p-4 rounded-2xl">
+        <textarea
+          value={journal}
+          onChange={(e) => setJournal(e.target.value)}
+          placeholder="Exprimez vos pensées, vos victoires, vos défis du jour..."
+   
